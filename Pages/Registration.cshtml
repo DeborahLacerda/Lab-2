@@ -1,0 +1,66 @@
+﻿@page
+@using AcademicManagement;
+@model RegistrationModel
+@{
+    ViewData["Title"] = "Registration";
+
+    var Students = DataAccess.GetAllStudents();
+    var Courses = DataAccess.GetAllCourses();
+    var Options = new SelectList(Students, "StudentId", "StudentName");
+}
+<h1>@ViewData["Title"]</h1>
+
+<form method="post">
+    <div class="row">
+        <div class="col-md-5">
+            <select asp-for="SelectedStudent" asp-items="Options" class="form-control">
+                <option value="-1">Choose a Student</option>
+            </select>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-5">
+            <button type="submit" class="btn btn-primary">Get Registrations</button>
+        </div>
+    </div>
+
+
+
+@if (Model.SelectedStudent != null)
+{
+    <p class="alert-primary">
+        You have no registration
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                        <label class="control-label">Course Title</label>
+                </th>
+                <th>
+                    <label class="control-label">Check to Register</label>
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var course in Courses)
+            {
+                <tr>
+                    <td>
+                        @course.CourseTitle
+                    </td>
+
+                    <td>
+                        <input asp-for="Selected" asp-items="@course.CourseCode" />
+
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+        <button type="submit" class="btn btn-primary">Register</button>
+}
+</form>
+
