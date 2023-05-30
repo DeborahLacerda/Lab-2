@@ -16,7 +16,7 @@
 <form method="post">
     <div>
         <div class="mt-3">
-            <select asp-for="SelectedStudentId" asp-items="StudentOptions" class="btn btn-success btn-lg dropdown-toggle">
+            <select asp-for="SelectedStudentId" asp-items="StudentOptions" class="btn btn-success btn-lg dropdown-toggle" id="StudentSelect" onchange="submitForm()">
                 <option value="">Choose a Student</option>
             </select>
         </div>
@@ -24,7 +24,10 @@
     <br />
     <div>
         <div>
-            <button type="submit" class="btn btn-outline-success" asp-page-handler="StudentSelected">Get Registrations</button>
+
+            <button hidden="hidden" type="submit" class="btn btn-outline-success"  id="FetchStudentBtn" asp-page-handler="StudentSelected">Get Registrations</button>
+         
+
         </div>
     </div>
     <div class="mt-3">
@@ -101,3 +104,10 @@
         }
     }
 </form>
+<script>
+    document.getElementById("StudentSelect").addEventListener("change", submitForm);
+
+    function submitForm() {
+        document.getElementById("FetchStudentBtn").click();
+    }
+</script>
