@@ -6,6 +6,7 @@
     var Students = DataAccess.GetAllStudents();
     var Courses = DataAccess.GetAllCourses();
     var StudentOptions = new SelectList(Students, "StudentId", "StudentName");
+
 }
 
 <h1 class="text-success">@ViewData["Title"]</h1>
@@ -87,20 +88,32 @@
                     <tr>
                         <th>Course Title</th>
                         <th>Course Code</th>
+                        <th>Grade</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var record in Model.RegisteredCourses)
+                    @for (var index = 0; index < Model.RegisteredCourses.Count; index++)
                     {
+                        var record = Model.RegisteredCourses[index];
+
                         var registeredCourse = Courses.First(course => course.CourseCode == record.CourseCode);
+
 
                         <tr>
                             <td>@registeredCourse.CourseCode</td>
                             <td>@registeredCourse.CourseTitle</td>
+                            <td>
+                                <input type="hidden" name="gradeRecords[@index].CourseCode" value="@record.CourseCode" />
+                                <input type="text" name="gradeRecords[@index].Grade" value="@((record.Grade == -100.0) ? "" : record.Grade)" />
+                            </td>
+
+
                         </tr>
                     }
                 </tbody>
             </table>
+            <button type="submit" class="btn btn-outline-success" asp-page-handler="SubmitGrades">Submit Grades</button>
+
         }
     }
 </form>

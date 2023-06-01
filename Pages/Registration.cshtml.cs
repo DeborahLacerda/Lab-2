@@ -1,6 +1,7 @@
 using AcademicManagement;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Diagnostics;
 
 namespace Lab_2.Pages
 {
@@ -14,7 +15,11 @@ namespace Lab_2.Pages
        [BindProperty]
         public string SelectedStudentId { get; set; } = string.Empty;
 
+      
+
         public List<AcademicRecord> RegisteredCourses { get; set; } = new List<AcademicRecord>();
+
+     
 
         public string ErrorMessage
         {
@@ -74,9 +79,42 @@ namespace Lab_2.Pages
             return Page();
         }
 
+
         private void LoadSelectedStudentCourses()
         {
+            List<AcademicRecord> records = DataAccess.GetAcademicRecordsByStudentId(SelectedStudentId);
+
             RegisteredCourses = DataAccess.GetAcademicRecordsByStudentId(SelectedStudentId);
         }
+
+        public class Grades
+        {
+            public string CourseCode { get; set; }
+            public double Grade { get; set; }
+        }
+
+        public IActionResult OnPostSubmitGrades(List<Grades> gradeRecords)
+        {
+            var studentRecord = DataAccess.GetAcademicRecordsByStudentId(SelectedStudentId);
+
+            foreach (var gradeRecord in gradeRecords)
+            {
+                var record = studentRecord.FirstOrDefault(r => r.CourseCode == gradeRecord.CourseCode);
+                if (record == null)
+                {
+                    continue;
+                }
+
+                record.Grade = gradeRecord.Grade;
+
+            }
+
+            LoadSelectedStudentCourses();
+
+            return Page();
+        }
+
+
+
     }
 }
