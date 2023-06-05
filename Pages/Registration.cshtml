@@ -1,5 +1,6 @@
 ﻿@page
 @using AcademicManagement
+@using Lab_2.Models;
 @model RegistrationModel
 @{
     ViewData["Title"] = "Registration";
@@ -48,16 +49,21 @@
     </div>
     @if (!string.IsNullOrWhiteSpace(Model.SelectedStudentId))
     {
-        @if (Model.RegisteredCourses.Count == 0)
+        @if (Model.StudentRecords.Count == 0)
         {
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Course Title</th>
+                        <th>
+                            Course Title
+                            </th>
                         <th>Course Code</th>
                         <th>Checkbox</th>
                 </thead>
                 <tbody>
+                    
+
+
                     @foreach (var course in Courses)
                     {
                         <tr>
@@ -86,25 +92,38 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Course Title</th>
-                        <th>Course Code</th>
-                        <th>Grade</th>
+                        <th>
+                            <a asp-page="Registration" asp-route-sortProperty="CourseCode" asp-route-sortOrder="@(Model.SortProperty == "CourseCode" && Model.SortOrder == "Asc" ? "Desc" : "Asc")">Course Code</a>
+                        </th>
+                        <th>
+                            <a asp-page="Registration" asp-route-sortProperty="CourseTitle" asp-route-sortOrder="@(Model.SortProperty == "CourseTitle" && Model.SortOrder == "Asc" ? "Desc" : "Asc")">Course Title</a>
+                        </th>
+                        <th>
+                            @if (Model.StudentRecords.Any(Gr => Gr.Grade != -100))
+                            {
+                                <a asp-page="Registration" asp-route-sortProperty="Grade" asp-route-sortOrder="@(Model.SortProperty == "Grade" && Model.SortOrder == "Asc" ? "Desc" : "Asc")">Grade</a>
+                            }
+                            else
+                            {
+                                <span>Grade</span>
+                            }
+                        </th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    @for (var index = 0; index < Model.RegisteredCourses.Count; index++)
+               
+                    @for (var index = 0; index < Model.StudentRecords.Count; index++)
                     {
-                        var record = Model.RegisteredCourses[index];
-
-                        var registeredCourse = Courses.First(course => course.CourseCode == record.CourseCode);
-
-
+                        var record = Model.StudentRecords[index];
+                       
                         <tr>
-                            <td>@registeredCourse.CourseCode</td>
-                            <td>@registeredCourse.CourseTitle</td>
+                            <td>@record.CourseCode</td>
+                            <td>@record.CourseTitle</td>
                             <td>
                                 <input type="hidden" name="gradeRecords[@index].CourseCode" value="@record.CourseCode" />
                                 <input type="text" name="gradeRecords[@index].Grade" value="@((record.Grade == -100.0) ? "" : record.Grade)" />
+
                             </td>
 
 

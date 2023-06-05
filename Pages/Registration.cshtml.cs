@@ -2,6 +2,12 @@ using AcademicManagement;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Diagnostics;
+using System.Linq;
+using Lab_2.Models;
+
+
+
+
 
 namespace Lab_2.Pages
 {
@@ -12,15 +18,15 @@ namespace Lab_2.Pages
         private const string StudentSelectedRegistered = "The Student has been registered for the following courses";
         private const string NoCoursSelectedError = "You must select at least one Course!";
 
-       [BindProperty]
+
+        [BindProperty]
         public string SelectedStudentId { get; set; } = string.Empty;
 
-      
+        public List<CourseGrade> StudentRecords { get; set; } = new List<CourseGrade>();
 
-        public List<AcademicRecord> RegisteredCourses { get; set; } = new List<AcademicRecord>();
-
-     
-
+        [BindProperty]
+        public string SortOrder { get; set; }
+        public string SortProperty {  get; set; }
         public string ErrorMessage
         {
             set
@@ -28,7 +34,6 @@ namespace Lab_2.Pages
                 TempData["ErrorMessage"] = value;
             }
         }
-
         public string InfoMessage
         {
             set
@@ -37,7 +42,6 @@ namespace Lab_2.Pages
             }
         }
 
-        
         public IActionResult OnPostStudentSelected()
         {
             if (string.IsNullOrEmpty(SelectedStudentId))
@@ -46,9 +50,17 @@ namespace Lab_2.Pages
                 return Page();
             }
 
+            if (SelectedStudentId != null) 
+            { 
+                HttpContext.Session.SetString("SelectedStudentId", SelectedStudentId); 
+            }
+           
+
+            // Save Selected StudentId in Session
+
             LoadSelectedStudentCourses();
 
-            if (RegisteredCourses.Count == 0)
+            if (StudentRecords.Count == 0)
             {
                 InfoMessage = StudentSelectedHasnotCourse;
             }
@@ -78,22 +90,46 @@ namespace Lab_2.Pages
 
             return Page();
         }
-
-
         private void LoadSelectedStudentCourses()
         {
-            List<AcademicRecord> records = DataAccess.GetAcademicRecordsByStudentId(SelectedStudentId);
+            var studentRecords = DataAccess.GetAcademicRecordsByStudentId(SelectedStudentId);
+            var Courses = DataAccess.GetAllCourses();
 
-            RegisteredCourses = DataAccess.GetAcademicRecordsByStudentId(SelectedStudentId);
+            foreach (var record in studentRecords)
+            {
+                var targetCourse = Courses.First(course => course.CourseCode == record.CourseCode);
+                var courseGrade = new Models.CourseGrade
+                {
+                    StudentId = record.StudentId,
+                    CourseCode = record.CourseCode,
+                    Grade = record.Grade,
+                    CourseTitle = targetCourse.CourseTitle
+                };
+
+                StudentRecords.Add(courseGrade);
+            }
+
+            // Sort the records
+            switch (SortProperty)
+            {
+                case "CourseCode":
+                    StudentRecords = SortOrder == "Asc" ? StudentRecords.OrderBy(r => r.CourseCode).ToList()
+                                                         : StudentRecords.OrderByDescending(r => r.CourseCode).ToList();
+                    break;
+                case "CourseTitle":
+                    StudentRecords = SortOrder == "Asc" ? StudentRecords.OrderBy(r => r.CourseTitle).ToList()
+                                                         : StudentRecords.OrderByDescending(r => r.CourseTitle).ToList();
+                    break;
+                case "Grade":
+                    StudentRecords = SortOrder == "Asc" ? StudentRecords.OrderBy(r => r.Grade).ToList()
+                                                         : StudentRecords.OrderByDescending(r => r.Grade).ToList();
+                    break;
+                default:
+                    break;
+            }
         }
 
-        public class Grades
-        {
-            public string CourseCode { get; set; }
-            public double Grade { get; set; }
-        }
-
-        public IActionResult OnPostSubmitGrades(List<Grades> gradeRecords)
+        public IActionResult OnPostSubmitGrades(List<AcademicRecord> gradeRecords)
         {
             var studentRecord = DataAccess.GetAcademicRecordsByStudentId(SelectedStudentId);
 
@@ -104,8 +140,10 @@ namespace Lab_2.Pages
                 {
                     continue;
                 }
-
-                record.Grade = gradeRecord.Grade;
+                else
+                {
+                    record.Grade = gradeRecord.Grade;
+                }
 
             }
 
@@ -113,8 +151,21 @@ namespace Lab_2.Pages
 
             return Page();
         }
+       
 
+        public void OnGet(string sortOrder,string sortProperty)
+        {
+            SortProperty = sortProperty;
+            SortOrder = sortOrder;
 
+            // Load SelectedStudentId from session if it's not set
+           if ( HttpContext.Session.GetString("SelectedStudentId") != null) { 
+            SelectedStudentId = HttpContext.Session.GetString("SelectedStudentId");
 
+                LoadSelectedStudentCourses();
+
+            }
+          
+        }
     }
 }
